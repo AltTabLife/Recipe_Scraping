@@ -53,7 +53,8 @@ class RecipeBook:
             try:
                 #Sanitize to uniform format
                 category_words = category_title.split()
-                formatted_category = ''.join(word.capitalize for word in category_words)
+
+                formatted_category = ''.join(word.capitalize() for word in category_words)
                 
                 #create file string
                 category_file = self.output_folder / f'{formatted_category}_recipes.json'
@@ -109,9 +110,18 @@ class RecipeBook:
                 category_file.write(json.dumps(file_dict, indent=4))
         elif category_path.exists():
             file_dict = self.extract_json(category_path)
-            with open(category_path, 'w+') as category_file:
+            if len(file_dict) == 0:
+                link_dict = {'links': [category_href]}
+                file_dict.update(link_dict)
+                with open(category_path, 'w+') as category_file:
+                    category_file.write(json.dumps(file_dict, indent=4))
+            elif category_href in file_dict['links']:
+                print(f'Category {category_path} with link {category_href} found')
+                return
+            else:
                 file_dict['links'].append(category_href)
-
+                with open(category_path, 'w+') as category_file:
+                    category_file.write(json.dumps(file_dict, indent=4))
 
     def add_recipe(
         self,

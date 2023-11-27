@@ -20,9 +20,7 @@ if __name__ == '__main__':
     #init
     cache_directory = 'SeleniumCache'
     instance1 = SeleniumInstance(cache_directory=cache_directory, options=['--disable-javascript'], base_timeout=10, variance=5)
-    instance1.set_page_load_timeout(30)
-
-    output_folder = 'EveryLastBite'
+    output_folder = 'RecipeBook'
     book1 = RecipeBook(output_folder=output_folder)
 
     ##Establish root page

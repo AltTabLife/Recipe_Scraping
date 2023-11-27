@@ -46,7 +46,7 @@ class SeleniumInstance:
             webdriver_options.add_argument(option)
 
         self.driver = webdriver.Chrome(options=webdriver_options)
-
+        self.driver.set_page_load_timeout(30)
         #----------
         #Init the cache system to reduce webpage calls when testing
         '''
