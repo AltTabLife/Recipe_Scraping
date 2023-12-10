@@ -32,7 +32,8 @@ if __name__ == '__main__':
     #Scrape categories from the root page
     instance1.get(root_page)
     category_container = '//*[@id="genesis-content"]/article/div/div[1]/div'
-    container_element = instance1.find_element(By.XPATH, category_container)
+    container_element = instance1.wait_and_extract(('By.XPATH', category_container))
+#    container_element = instance1.find_element(By.XPATH, category_container)
     category_tiles = container_element.find_elements(By.CLASS_NAME, 'kt-inside-inner-col')
     
     category_dict = {} #Setup for next section
@@ -53,7 +54,8 @@ if __name__ == '__main__':
 
         def recursive_scrape(root_page_url):
             #Notate the recipes for the current page
-            recipe_tile_container = instance1.find_element(By.ID, 'genesis-content')
+            recipe_tile_container = instance1.wait_and_extract(('By.ID', 'genesis-content'))
+#            recipe_tile_container = instance1.find_element(By.ID, 'genesis-content')
             recipe_tiles = recipe_tile_container.find_elements(By.TAG_NAME, 'article')
 
             ##Clean out ones that already exist
@@ -70,15 +72,19 @@ if __name__ == '__main__':
                 instance1.get(unsaved_recipe_link)
 
                 #Extract the title on the page
-                recipe_title = instance1.find_element(By.TAG_NAME, 'h1').text
+                recipe_title = instance1.wait_and_extract(('By.TAG_NAME', 'h1')).text
+#                recipe_title = instance1.find_element(By.TAG_NAME, 'h1').text
 
                 #Extract the ingredients on the current page
-                ingredients_container = instance1.find_element(By.CLASS_NAME, 'wprm-recipe-ingredients')
+
+                ingredients_container = instance1.wait_and_extract(('By.CLASS_NAME', 'wprm-recipe-ingredients'))
+#                ingredients_container = instance1.find_element(By.CLASS_NAME, 'wprm-recipe-ingredients')
                 ingredients = ingredients_container.find_elements(By.TAG_NAME, 'li')
                 ingredients_array = [ingredient.text for ingredient in ingredients]
 
                 #Extract steps to cook
-                instruction_container = instance1.find_element(By.CLASS_NAME, 'wprm-recipe-instruction-group')
+                instruction_container = instance1.wait_and_extract(('By.CLASS_NAME', 'wprm-recipe-instruction-group'))
+#                instruction_container = instance1.find_element(By.CLASS_NAME, 'wprm-recipe-instruction-group')
                 instructions = instruction_container.find_elements(By.TAG_NAME, 'li')
                 instructions_array = [instruction.text for instruction in instructions]
 
@@ -88,7 +94,8 @@ if __name__ == '__main__':
 
             #Recursively loop through the menu pages
             try:
-                next_page = instance1.find_element(By.CSS_SELECTOR, 'li.pagination-next a').get_attribute('href')
+                next_page = instance1.wait_and_extract(('By.CSS_SELECTOR', 'li.pagination-next a'))
+#                next_page = instance1.find_element(By.CSS_SELECTOR, 'li.pagination-next a').get_attribute('href')
                 print('Moving on to next page in category')
                 instance1.get(next_page)
                 recursive_scrape(root_page_url=root_page)

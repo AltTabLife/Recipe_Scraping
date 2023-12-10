@@ -2,6 +2,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 import os, random, time, subprocess, re
@@ -45,8 +48,14 @@ class SeleniumInstance:
         for option in options:
             webdriver_options.add_argument(option)
 
+        webdriver_options.page_load_strategy = 'none'
+
         self.driver = webdriver.Chrome(options=webdriver_options)
-        self.driver.set_page_load_timeout(30)
+        self.driver.set_page_load_timeout(60)
+
+        self.driver_wait = WebDriverWait(self.driver, 30)
+
+
         #----------
         #Init the cache system to reduce webpage calls when testing
         '''
@@ -127,6 +136,7 @@ class SeleniumInstance:
 
         return None
 
+
     def select_proxy(self, string_or_list = None):
         if string_or_list == None:
             return None
@@ -178,20 +188,26 @@ class SeleniumInstance:
             self.reading_wait()
             return page_content
 
-    def get_text_elements(self, container_element, tag_name):
-        
-        h2_array = container_element.find_elements(By.TAG_NAME, tag_name)
-        h2_text_array = [h2.text for h2 in h2_array]
-        
-        return h2_text_array
+    def wait_and_extract(self, element_tuple):
+        selector_parts = element_tuple[0].split('.')
+        by = getattr(selector_parts[0], selector_parts[1])
 
-    def get_href_elements(self, container_element):
+        self.driver_wait.until(EC.presence_of_element_located((eval(by), element_tuple[1])))
+        
+        return self.driver.find_element(eval(by), element_tuple[1])
+        
 
-        a_array = container_element.find_elements(By.TAG_NAME, 'a')
-        a_href_array = [a.get_attribute('href') for a in a_array]
-        
-        return a_href_array
-        
+    def wait_and_extract_all(self, element_tuple):
+        selector_parts = element_tuple[0].split('.')
+        by = getattr(selector_parts[0], selector_parts[1])
+
+        self.driver_wait.until(EC.presence_of_all_elements_located((eval(by), element_tuple[1])))
+
+        return self.driver.find_elements(eval(by), element_tuple[1])
+    
+    def stop_loading(self):
+        self.driver.execute_script('window.stop();')
+
     def go_back(self):
         previous_url = self.driver.execute_script('return location.href;')
         if previous_url and (previous_url.startswith("file://") or previous_url.startswith("/home")):
@@ -202,7 +218,6 @@ class SeleniumInstance:
             self.timeout_function(self.base_timeout, self.variance)
             self.driver.back()
         
-
 
     def close(self):
         self.driver.quit()
@@ -217,23 +232,6 @@ class SeleniumInstance:
         '''
         #----------
     
-    def remove_duplicates_keep_first(self, arr):
-        unique_items = []
-        seen = set()
-        for item in arr:
-            if item not in seen:
-                seen.add(item)
-                unique_items.append(item)
-        return unique_items
-
-    def zip_to_dict(self, keys, values):
-        if len(keys) != len(values):
-            raise ValueError("Input arrays must have the same length")
-
-        result_dict = {}
-        for key, value in zip(keys, values):
-            result_dict[key] = value
-        return result_dict
 
     def __getattr__(self, attr):
         def implicit_timeout(*args, **kwargs):
